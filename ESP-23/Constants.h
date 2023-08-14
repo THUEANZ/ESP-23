@@ -3,7 +3,7 @@
 //****************************
 // Constant values
 const int ON_THRESH = 50;           // Set threshold value before NoteOn
-const long MAX_PRESSURE = 3300000;  // Set maximum pressure that can blow
+const long MAX_PRESSURE = 3600000;  // Set maximum pressure that can blow
 const long MIN_PRESSURE = 2900000;  // Set minimum pressureฃ
 
 // Switch pins

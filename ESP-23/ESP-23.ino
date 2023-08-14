@@ -19,7 +19,7 @@ void loop() {
   //*** 10 Hz routine ***
   //*********************
   current10HzTime = millis();
-  if ((current10HzTime - previous10HzTime) >= 200) {
+  if ((current10HzTime - previous10HzTime) >= 100) {
     previous10HzTime = current10HzTime;
     //update the display if necessary
     if (displayChanged == true) {  //if something changed
@@ -41,7 +41,7 @@ void loop() {
 
     pitch = tuning + startNote + 5 * LHf - 2 * LH1 - (LHb && !(LH1 && LH2)) - LH2 - (LH2 && LH1) - 2 * LH3 + LHp1 - LHp2 - 2 * LHp3 - RH1 - (RH1 && LH3) - RH2 - 2 * RH3 + RHp1 - 2 * RHp2 + RHs + 12 * Oct;
 
-    Serial.println(rawPressure);
+    // Serial.println(screen);
 
     // Start blowing
     if ((breath > ON_THRESH) && (lastPitch == 0)) {
@@ -86,6 +86,7 @@ void loop() {
     switch (mode) {
       case PLAY_MODE:
         screen = 0;
+        displayChanged = true;        // Update display
         break;
       case PATCH_MODE:
         screen = 1;

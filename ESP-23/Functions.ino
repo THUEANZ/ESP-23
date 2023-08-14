@@ -20,7 +20,7 @@ void changeDisplay() {
 
 // Default screen
 void displayDefault() {
-  displayChanged = true;        // Update display
+  // displayChanged = true;
   display.setTextSize(2);
   display.setTextColor(SH110X_WHITE, SH110X_BLACK);  // White text on black background
   display.setCursor(23, 18);
@@ -32,7 +32,6 @@ void displayDefault() {
 
 // Select patch screen
 void displayPatch() {
-  displayChanged = true;        // Update display
   display.setTextSize(2);
   display.setTextColor(SH110X_WHITE, SH110X_BLACK);
   display.setCursor(35, 10);
@@ -51,7 +50,6 @@ void displayPatch() {
 
 // Tuning screen
 void displayTune() {
-  displayChanged = true;        // Update display
   display.setTextSize(2);
   display.setTextColor(SH110X_WHITE, SH110X_BLACK);
   display.setCursor(28, 10);
@@ -81,27 +79,14 @@ void patchChange() {
   patch = constrain(map(patch, 0, 1023, 60, 80), 0, 127);
   talkMIDI(0xB0, 0x00, 0x00);   // Select default bank GM1
   talkMIDI(0xC0, patch, 0x00);  // Patch number
+  displayChanged = true;        // Update display
 }
 
 // Handle tuning key
 void transpose() {
   tuning = analogRead(TUNE_POT);
   tuning = map(tuning, 0, 1023, MIN_TUNE, MAX_TUNE);  // Tune in range of 12 keys
-}
-
-// Function to read and debounce a switch
-int digitalReadDebounce(int pin) {
-  unsigned long lastDebounceTime = 0;
-  int switchState = digitalRead(pin);
-
-  if (switchState != lastSwitchState) {
-    lastDebounceTime = millis();
-  }
-  if ((millis() - lastDebounceTime) > DEBOUNCE_DELAY) {
-    switchState = switchState;
-  }
-  lastSwitchState = switchState;
-  return switchState;
+  displayChanged = true;        // Update display
 }
 
 // Read pressure sensor and convert into breath level
@@ -117,6 +102,23 @@ void readPressure() {
 
   if (breath <= ON_THRESH) {  // breath not enough to trigger sound
     breath = 0;
+  }
+}
+
+// Function to read and debounce a switch
+int digitalReadDebounce(int pin) {
+  unsigned long lastDebounceTime = 0;
+  int switchState = digitalRead(pin);
+
+  if (switchState != lastSwitchState) {
+    lastDebounceTime = millis();
+  }
+  if ((millis() - lastDebounceTime) > DEBOUNCE_DELAY) {
+    if (switchState != lastSwitchState) {
+      lastSwitchState = switchState;
+      return switchState;
+    }
+    return lastSwitchState;
   }
 }
 

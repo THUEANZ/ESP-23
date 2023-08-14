@@ -45,8 +45,8 @@ void setup() {
 
   // Initialize display
   display.begin(0x3C, true);
-  startup1();
+  // startup1();
   startSound();
-  startup2();
+  // startup2();
   
 }
