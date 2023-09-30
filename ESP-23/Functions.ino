@@ -1,107 +1,191 @@
-//****************************
+//**********************************************************
 //  Functions
-//****************************
-// Display screen
+//**********************************************************
+// Display data
 void changeDisplay() {
-  display.clearDisplay();  // Clear display
-  switch (screen) {
-    case 0:
-      displayDefault();  // Default screen
+  display.clearBuffer();  // clear buffer for storing display content in RAM
+  // display.clearDisplay();  // Clear display
+  switch (mode) {
+    case MENU_MODE:
+      displayMenu();
       break;
-    case 1:
-      displayPatch();  // Select patch screen
+    case PLAY_MODE:
+      displayPlaying();  // Playing screen
       break;
-    case 2:
+    case PATCH_MODE:
+      displayPatch();  // Patch selection screen
+      break;
+    case TUNE_MODE:
       displayTune();  // Tuning screen
       break;
+    case RESIST_MODE:  // Breath resistance screen
+      displayResist();
+      break;
+    case PRACTICE_MODE:
+      displayFingering();  // Fingering practice screen
+      break;
+    case BLUETOOTH_MODE:
+      displayBluetooth();  // Bluetooth screen
+      break;
   }
-  display.display();  // Display screen
+  display.sendBuffer();  // Display screen
 }
 
-// Default screen
-void displayDefault() {
-  // displayChanged = true;
-  display.setTextSize(2);
-  display.setTextColor(SH110X_WHITE, SH110X_BLACK);  // White text on black background
-  display.setCursor(23, 18);
-  display.write("PLAYING");
-  display.setTextSize(1);
-  display.setCursor(55, 40);
-  display.write("MODE");
+// Menu selection screen
+void displayMenu() {
+  // selected item background
+  display.drawXBMP(0, 22, 128, 21, selectedBackground);
+
+  display.setFont(u8g_font_7x14);
+  // draw previous menu icon and label
+  display.drawStr(31, 16, menuName[previousMenu]);
+  display.drawXBMP(4, 2, 16, 16, bitmap_icons[previousMenu]);
+
+  // draw next menu icon and label
+  display.drawStr(31, 58, menuName[nextMenu]);
+  display.drawXBMP(4, 46, 16, 16, bitmap_icons[nextMenu]);
+
+  // draw selected menu icon and label in bold text
+  display.setFont(u8g_font_7x14B);
+  display.drawStr(31, 36, menuName[selectedMenu]);
+  display.drawXBMP(4, 24, 16, 16, bitmap_icons[selectedMenu]);
+
+  // draw scrollbar background
+  display.drawXBMP(120, 0, 8, 64, scrollbarBackground);
+
+  // draw scrollbar handle
+  display.drawBox(122, 64 / NUM_MENU * selectedMenu, 3, 64 / NUM_MENU);
 }
 
-// Select patch screen
+// Display playing screen
+void displayPlaying() {
+  // Display background
+  display.drawXBMP(0, 0, 128, 64, playModeBackground);
+}
+
+// Display patch selection screen
 void displayPatch() {
-  display.setTextSize(2);
-  display.setTextColor(SH110X_WHITE, SH110X_BLACK);
-  display.setCursor(35, 10);
-  display.write("PATCH");
+  // Display background
+  display.drawXBMP(0, 0, 128, 64, tunePatchBackground);
+  display.setFont(u8g_font_7x14B);
+  display.drawStr(46, 14, "Patch");
 
   // Display patch number
+  display.setFont(u8g_font_7x14B);
   if (patch >= 100)
-    display.setCursor(45, 33);
+    display.setCursor(54, 34);
   else if (patch >= 10)
-    display.setCursor(55, 33);
+    display.setCursor(57, 34);
   else
-    display.setCursor(60, 33);
+    display.setCursor(60, 34);
 
   display.print(patch);
 }
 
 // Tuning screen
 void displayTune() {
-  display.setTextSize(2);
-  display.setTextColor(SH110X_WHITE, SH110X_BLACK);
-  display.setCursor(28, 10);
-  display.write("TUNING");
+  // Display background
+  display.drawXBMP(0, 0, 128, 64, tunePatchBackground);
+  display.setFont(u8g_font_7x14B);
+  display.drawStr(42, 16, "Tuning");
 
   // Display tuning value
+  display.setFont(u8g_font_7x14B);
   if (tuning > 0) {
-    display.setCursor(33, 33);
+    display.setCursor(43, 35);
     display.print("+");
     display.print(tuning);
   } else if (tuning < 0) {
-    display.setCursor(33, 33);
+    display.setCursor(43, 35);
     display.print(tuning);
   } else {
-    display.setCursor(45, 33);
+    display.setCursor(45, 35);
     display.print("0");
   }
 
   // Display tuning letter
-  display.setCursor(65, 33);
-  display.println(KEY_TUNE[tuning + 5]);
+  display.drawStr(65, 35, KEY_TUNE[tuning + 5]);
+}
+
+// Breath resistance screen
+void displayResist() {
+  // Display background
+  display.drawXBMP(0, 0, 128, 64, tunePatchBackground);
+  display.setFont(u8g_font_7x14B);
+  display.drawStr(29, 14, "Resistance");
+
+  // Display resistance level
+  display.setFont(u8g_font_7x14B);
+if (resistLevel >= 10)
+    display.setCursor(57, 34);
+  else
+    display.setCursor(60, 34);
+
+  display.print(resistLevel);
+}
+
+// Fingering practice screen
+void displayFingering() {
+  display.drawXBMP(0, 0, 128, 64, fingeringBackground);
+  display.setFont(u8g_font_7x14B);
+  display.drawStr(31, 37, KEY_LETTER[pitch - 47]);
+  display.setCursor(55, 37);
+}
+
+// Bluetooth screen
+void displayBluetooth() {
+  if (bleConnected == true) {
+    display.drawXBMP(0, 0, 128, 64, connectedBackground);
+  } else {
+    display.drawXBMP(0, 0, 128, 64, pairingBackground);
+  }
 }
 
 // Handle patch change
 void patchChange() {
-  patch = analogRead(PATCH_POT);
-  patch = constrain(map(patch, 0, 1023, 60, 80), 0, 127);
-  talkMIDI(0xB0, 0x00, 0x00);   // Select default bank GM1
+  patch = analogRead(CONTROL_POT);
+  patch = constrain(map(patch, 0, 4095, 0, 127), 0, 127);
+  talkMIDI(0xB0, 0x00, 0x00);   // Default bank GM1
   talkMIDI(0xC0, patch, 0x00);  // Patch number
   displayChanged = true;        // Update display
 }
 
 // Handle tuning key
 void transpose() {
-  tuning = analogRead(TUNE_POT);
-  tuning = map(tuning, 0, 1023, MIN_TUNE, MAX_TUNE);  // Tune in range of 12 keys
-  displayChanged = true;        // Update display
+  tuning = analogRead(CONTROL_POT);
+  tuning = map(tuning, 0, 4095, MIN_TUNE, MAX_TUNE);  // Tune in 12 keys range
+  displayChanged = true;
 }
 
-// Read pressure sensor and convert into breath level
-void readPressure() {
-  lastRawPressure = rawPressure;  // Save last raw pressure value for average
-  while (!airPress.isReady())     // Wait for sensor to be ready
-    ;
-  airPress.readAndSelectNextData(HX710_DIFFERENTIAL_INPUT_40HZ);  // 40Hz input rate
-  rawPressure = airPress.getLastDifferentialInput();              // Read sensor
-  breath = (lastRawPressure + rawPressure) / 2;                   // Average pressure values
-  breath = map(breath, MIN_PRESSURE, MAX_PRESSURE, 0, 127);       // convert to breath level
-  breath = constrain(breath, 0, 127);                             // Constrain value within MIDI ranges
+// Handle breath resistance change
+void adjustResist() {
+  resistLevel = analogRead(CONTROL_POT);
+  resistLevel = map(resistLevel, 0, 4095, 0, 20);  // Adjust in 20 levels
+  blowResist = resistLevel * LEVEL_STEP;           // Step values per level
+  displayChanged = true;
+}
 
-  if (breath <= ON_THRESH) {  // breath not enough to trigger sound
-    breath = 0;
+// Handle bluetooth connection
+void bleStatus() {
+  if (BLEMidiServer.isConnected()) {
+    if (lastBleConnected == false) {
+      bleConnected = true;
+      lastBleConnected = true;
+      displayChanged = true;
+    }
+  } else {
+    bleConnected = false;
+    if (lastBleConnected == true) {
+      lastBleConnected = false;
+      displayChanged = true;
+    }
+  }
+}
+
+void blePair() {
+  if (isBleOn == false) {
+    BLEMidiServer.begin("ESP-23");
+    isBleOn = true;
   }
 }
 
@@ -114,94 +198,36 @@ int digitalReadDebounce(int pin) {
     lastDebounceTime = millis();
   }
   if ((millis() - lastDebounceTime) > DEBOUNCE_DELAY) {
-    if (switchState != lastSwitchState) {
-      lastSwitchState = switchState;
-      return switchState;
-    }
-    return lastSwitchState;
+    switchState = switchState;
   }
-}
-
-// Read switches and put inverted value in variables
-void readSwitches() {
-  LHf = !digitalReadDebounce(22);
-  LH1 = !digitalReadDebounce(23);
-  LHb = !digitalReadDebounce(24);
-  LH2 = !digitalReadDebounce(25);
-  LH3 = !digitalReadDebounce(26);
-  LHs1 = !digitalReadDebounce(27);
-  LHs2 = !digitalReadDebounce(28);
-  LHs3 = !digitalReadDebounce(29);
-  Oct = !digitalReadDebounce(30);
-  LHp1 = !digitalReadDebounce(31);
-  LHp2 = !digitalReadDebounce(32);
-  LHp3 = !digitalReadDebounce(33);
-  RH1 = !digitalReadDebounce(34);
-  RH2 = !digitalReadDebounce(35);
-  RH3 = !digitalReadDebounce(36);
-  RHs = !digitalReadDebounce(37);
-  RHp1 = !digitalReadDebounce(38);
-  RHp2 = !digitalReadDebounce(39);
-  modeSW = digitalReadDebounce(MODE_SWITCH);
-}
-
-// Send MIDI data
-void sendMIDI(byte data) {
-  SPI.transfer(0);
-  SPI.transfer(data);
-}
-
-// Send MIDI message
-void talkMIDI(byte cmd, byte data1, byte data2) {
-  // Wait for chip to be ready
-  while (!digitalRead(VS_DREQ))
-    ;
-  digitalWrite(VS_XDCS, LOW);
-  sendMIDI(cmd);
-  // All commands less than 0xBn have 2 data bytes
-  if ((cmd & 0xF0) <= 0xB0 || (cmd & 0xF0) >= 0xE0) {
-    sendMIDI(data1);
-    sendMIDI(data2);
-  } else {
-    sendMIDI(data1);
-  }
-  digitalWrite(VS_XDCS, HIGH);
-}
-
-// Send MIDI note-on message
-void noteOn(byte channel, byte note, byte velocity) {
-  talkMIDI((0x90 | channel), note, velocity);
-}
-
-// Send MIDI note-off message
-void noteOff(byte channel, byte note, byte velocity) {
-  talkMIDI((0x80 | channel), note, velocity);
+  lastSwitchState = switchState;
+  return switchState;
 }
 
 // Startup animation 1
 void startup1() {
   int i, j, k;
 
-  display.clearDisplay();  // Clear display buffer
-  display.display();
+  display.clearBuffer();  // Clear display buffer
 
   for (i = 64; i >= 0; i -= 4) {  // i = top-left corner
-    display.setTextColor(SH110X_WHITE, SH110X_BLACK);
-    display.setTextSize(3);
-    display.setCursor(12, 10);
-    display.write("ESP-23");
-    display.setTextSize(1);
+    display.setDrawColor(1);      // set the color to white
+    display.setFont(u8g_font_7x14B);
+    display.setCursor(42, 28);
+    display.print("ESP-23");
+    display.setFont(u8g_font_6x10);
     display.setCursor(5, 40);
-    display.write("Electronic Saxophone");
-    display.setCursor(42, 50);
-    display.write("23-Keys");
+    display.print("Electronic Saxophone");
+    display.setCursor(42, 55);
+    display.print("23-Keys");
 
+    display.setDrawColor(0);
     for (k = 0; k < i; k += 1)  // k = top-left corners
     {
-      j = 128 - (k * 2);                                   // j = box width
-      display.drawRect(k, k / 2, j, j / 2, SH110X_BLACK);  // drawRect(x, y, width, height, color)
+      j = 128 - (k * 2);                      // j = box width
+      display.drawFrame(k, k / 2, j, j / 2);  // drawRect(x, y, width, height, color)
     }
-    display.display();
+    display.sendBuffer();
   }
 }
 
@@ -209,10 +235,10 @@ void startup1() {
 void startup2() {
   int i, j;
 
-  for (i = 64; i >= 0; i -= 4) {                  // i = top-left corner
-    j = 128 - i * 2;                              // j = box width
-    display.fillRect(i, 0, j, 64, SH110X_BLACK);  // fillRect(x, y, width, height, color)
-    display.display();
+  for (i = 64; i >= 0; i -= 4) {   // i = top-left corner
+    j = 128 - i * 2;               // j = box width
+    display.drawBox(i, 0, j, 64);  // fillRect(x, y, width, height, color)
+    display.sendBuffer();
   }
 }
 
@@ -231,24 +257,26 @@ void startSound() {
 }
 
 // Use write VS1053 register
-void VSWriteRegister(unsigned char addressbyte, unsigned char highbyte, unsigned char lowbyte){
-  while(!digitalRead(VS_DREQ)) ; //Wait for DREQ to go high indicating IC is available
-  digitalWrite(VS_XCS, LOW); //Select control
+void VSWriteRegister(unsigned char addressbyte, unsigned char highbyte, unsigned char lowbyte) {
+  while (!digitalRead(VS_DREQ))
+    ;                         //Wait for DREQ to go high indicating IC is available
+  digitalWrite(VS_XCS, LOW);  //Select control
 
   //SCI consists of instruction byte, address byte, and 16-bit data word.
-  SPI.transfer(0x02); //Write instruction
+  SPI.transfer(0x02);  //Write instruction
   SPI.transfer(addressbyte);
   SPI.transfer(highbyte);
   SPI.transfer(lowbyte);
-  while(!digitalRead(VS_DREQ)) ; //Wait for DREQ to go high indicating command is complete
-  digitalWrite(VS_XCS, HIGH); //Deselect Control
+  while (!digitalRead(VS_DREQ))
+    ;                          //Wait for DREQ to go high indicating command is complete
+  digitalWrite(VS_XCS, HIGH);  //Deselect Control
 }
 
 // Use to put VS1053 into realtime MIDI mode (only first time)
 void VSLoadUserCode() {
   int i = 0;
 
-  while (i<sizeof(sVS1053b_Realtime_MIDI_Plugin)/sizeof(sVS1053b_Realtime_MIDI_Plugin[0])) {
+  while (i < sizeof(sVS1053b_Realtime_MIDI_Plugin) / sizeof(sVS1053b_Realtime_MIDI_Plugin[0])) {
     unsigned short addr, n, val;
     addr = sVS1053b_Realtime_MIDI_Plugin[i++];
     n = sVS1053b_Realtime_MIDI_Plugin[i++];
@@ -257,4 +285,37 @@ void VSLoadUserCode() {
       VSWriteRegister(addr, val >> 8, val & 0xFF);
     }
   }
+}
+
+// Send MIDI data
+void sendMIDI(byte data) {
+  SPI.transfer(0);
+  SPI.transfer(data);
+}
+
+// Send MIDI message
+void talkMIDI(byte cmd, byte data1, byte data2) {
+  // Wait for chip to be ready (Unlikely to be an issue with real time MIDI)
+  while (!digitalRead(VS_DREQ))
+    ;
+  digitalWrite(VS_XDCS, LOW);
+  sendMIDI(cmd);
+  // Some commands only have one data byte. All cmds less than 0xBn have 2 data bytes
+  if ((cmd & 0xF0) <= 0xB0 || (cmd & 0xF0) >= 0xE0) {
+    sendMIDI(data1);
+    sendMIDI(data2);
+  } else {
+    sendMIDI(data1);
+  }
+  digitalWrite(VS_XDCS, HIGH);
+}
+
+// Send MIDI note-on message
+void noteOn(byte channel, byte note, byte velocity) {
+  talkMIDI((0x90 | channel), note, velocity);
+}
+
+// Send MIDI note-off message
+void noteOff(byte channel, byte note, byte velocity) {
+  talkMIDI((0x80 | channel), note, velocity);
 }
