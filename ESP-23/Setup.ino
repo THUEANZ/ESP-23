@@ -6,12 +6,12 @@ void setup() {
   // Instrument configuration pins
   pinMode(CONTROL_POT, INPUT);           // Control potentiometer
   pinMode(SELECT_BUTTON, INPUT_PULLUP);  // Mode select
-  pinMode(UP_BUTTON, INPUT_PULLUP);  // Mode Scroll up
-  pinMode(DOWN_BUTTON, INPUT_PULLUP);  // Mode Scroll down
+  pinMode(UP_BUTTON, INPUT_PULLUP);      // Mode Scroll up
+  pinMode(DOWN_BUTTON, INPUT_PULLUP);    // Mode Scroll down
 
   // Speaker control pin
-  pinMode(RELAY_INPUT, OUTPUT); // Speaker enable
-  digitalWrite(RELAY_INPUT, LOW); // Enable speaker
+  pinMode(RELAY_INPUT, OUTPUT);    // Speaker enable
+  digitalWrite(RELAY_INPUT, HIGH);  // Enable speaker
 
   // VS1053 control pins
   pinMode(VS_DREQ, INPUT);      // Data Request
@@ -45,13 +45,22 @@ void setup() {
   lastBreath = 0;
   lastPitch = 0;
   tuning = 0;
+  resistLevel = 0;
   mode = PLAY_MODE;
   selectedMenu = PLAY_MODE;
-  previousMenu = BLUETOOTH_MODE;
-  nextMenu = PATCH_MODE;
   displayChanged = true;
   lastBleConnected = false;
   isBleOn = false;
+
+  // Set correct values for the previous and next menus
+  previousMenu = selectedMenu - 1;
+  if (previousMenu < 0) {
+    previousMenu = NUM_MENU - 1;
+  }
+  nextMenu = selectedMenu + 1;
+  if (nextMenu > NUM_MENU - 1) {
+    nextMenu = 0;
+  }
 
   // Initialize display and play startup sound
   display.begin();
@@ -61,5 +70,4 @@ void setup() {
   delay(1000);
   startup2();
   display.setColorIndex(1);  // set the color to white
-
 }
