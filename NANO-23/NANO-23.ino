@@ -38,6 +38,7 @@ void setup() {
     pinMode(i, INPUT_PULLUP);
   }
   Serial.begin(115200);  // Start serial communication
+  delay(2000);
 }
 
 //****************************
@@ -47,14 +48,14 @@ void loop() {
   currentTime = millis();
   if ((currentTime - previousTime) >= 40) {
     previousTime = currentTime;
+
     readSwitches();  // Read each switch value
+
     // Calculate midi note from all pressed switches
     midiNote = START_NOTE + 5 * LHf - 2 * LH1 - (LHb && !(LH1 && LH2)) - LH2 - (LH2 && LH1) - 2 * LH3 + LHp1 - LHp2 - 2 * LHp3 - RH1 - (RH1 && LH3) - RH2 - 2 * RH3 + RHp1 - 2 * RHp2 + RHs + 12 * Oct;
 
-    if (Serial.available() < 2) {
+    if (Serial.availableForWrite())
       Serial.write(midiNote);  // Send MIDI note through Serial
-    } else
-      dropOutdated();
   }
 }
 
