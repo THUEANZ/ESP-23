@@ -213,14 +213,14 @@ void loop() {
       case BLUETOOTH_MODE:
         bleStatus();
         blePair();
-        digitalWrite(RELAY_INPUT, HIGH);  // Disable speaker
+        digitalWrite(RELAY_INPUT, LOW);  // Disable speaker
         break;
     }
     // If not in bluetooth mode
     if (mode != BLUETOOTH_MODE && isBleOn == true) {
       BLEMidiServer.end();  // End ble server
       isBleOn = false;
-      digitalWrite(RELAY_INPUT, LOW);  // Enable speaker
+      digitalWrite(RELAY_INPUT, HIGH);  // Enable speaker
     }
   }
 }
