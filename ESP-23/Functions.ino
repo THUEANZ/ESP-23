@@ -116,7 +116,7 @@ void displayResist() {
 
   // Display resistance level
   display.setFont(u8g_font_7x14B);
-if (resistLevel >= 10)
+  if (resistLevel >= 10)
     display.setCursor(57, 34);
   else
     display.setCursor(60, 34);
@@ -128,7 +128,7 @@ if (resistLevel >= 10)
 void displayFingering() {
   display.drawXBMP(0, 0, 128, 64, fingeringBackground);
   display.setFont(u8g_font_7x14B);
-  display.drawStr(31, 37, KEY_LETTER[pitch - 47]);
+  display.drawStr(31, 37, KEY_LETTER[pitch - 47]); // Show note name from MIDI value
   display.setCursor(55, 37);
 }
 
@@ -189,21 +189,6 @@ void blePair() {
   }
 }
 
-// Function to read and debounce a switch
-int digitalReadDebounce(int pin) {
-  unsigned long lastDebounceTime = 0;
-  int switchState = digitalRead(pin);
-
-  if (switchState != lastSwitchState) {
-    lastDebounceTime = millis();
-  }
-  if ((millis() - lastDebounceTime) > DEBOUNCE_DELAY) {
-    switchState = switchState;
-  }
-  lastSwitchState = switchState;
-  return switchState;
-}
-
 // Startup animation 1
 void startup1() {
   int i, j, k;
@@ -212,15 +197,7 @@ void startup1() {
 
   for (i = 64; i >= 0; i -= 4) {  // i = top-left corner
     display.setDrawColor(1);      // set the color to white
-    display.setFont(u8g_font_7x14B);
-    display.setCursor(42, 28);
-    display.print("ESP-23");
-    display.setFont(u8g_font_6x10);
-    display.setCursor(5, 40);
-    display.print("Electronic Saxophone");
-    display.setCursor(42, 55);
-    display.print("23-Keys");
-
+    display.drawXBMP(0, 0, 128, 64, startupBackground);
     display.setDrawColor(0);
     for (k = 0; k < i; k += 1)  // k = top-left corners
     {

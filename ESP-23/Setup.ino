@@ -10,8 +10,8 @@ void setup() {
   pinMode(DOWN_BUTTON, INPUT_PULLUP);    // Mode Scroll down
 
   // Speaker control pin
-  pinMode(RELAY_INPUT, OUTPUT);     // Speaker enable
-  digitalWrite(RELAY_INPUT, HIGH);  // Enable speaker
+  pinMode(MUTE_INPUT, OUTPUT);    // Speaker mute pin
+  digitalWrite(MUTE_INPUT, LOW);  // Unmute speaker
 
   // VS1053 control pins
   pinMode(VS_DREQ, INPUT);      // Data Request

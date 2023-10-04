@@ -7,16 +7,8 @@ const long MAX_PRESSURE = 3400000;  // Set maximum pressure that can blow
 const long MIN_PRESSURE = 2900000;  // Set minimum pressure
 const long LEVEL_STEP = 50000;      // Set min/max pressure step value per level
 
-// // Switch pins
-// const int NUM_SWITCHES = 18;  // Number of switches
-// const int switchPins[NUM_SWITCHES] = {
-//   22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39
-// };
-const int DEBOUNCE_DELAY = 20;
-
 // MIDI datas
 const int MIDIchannel = 0;  // MIDI channel 1
-// const int startNote = 73;   // Start note is C#
 const int C4_NOTE = 60;  // C4 note
 const int C5_NOTE = 72;  // C5 note
 
@@ -37,7 +29,7 @@ const int HX_DOUT = 34;  // Data Out pin
 const int HX_CLK = 33;   // Clock pin
 
 // Speaker control pin
-const int RELAY_INPUT = 32;  // Relay input pin
+const int MUTE_INPUT = 32;  // Speaker mute pin
 
 // Menus
 const int NUM_MENU = 6;         // Number of menus
