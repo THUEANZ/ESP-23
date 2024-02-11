@@ -1,28 +1,22 @@
-//**********************************************************
+//****************************
 //  Setup
-//**********************************************************
+//****************************
 void setup() {
+  for (int i = 0; i < NUM_SWITCHES; i++) {  // Set inputs with pull-up
+    pinMode(switchPins[i], INPUT_PULLUP);
+  }
 
-  // Instrument configuration pins
-  pinMode(CONTROL_POT, INPUT);           // Control potentiometer
-  pinMode(SELECT_BUTTON, INPUT_PULLUP);  // Mode select
-  pinMode(UP_BUTTON, INPUT_PULLUP);      // Mode Scroll up
-  pinMode(DOWN_BUTTON, INPUT_PULLUP);    // Mode Scroll down
+  pinMode(PATCH_POT, INPUT);           // Patch select potentiometer
+  pinMode(TUNE_POT, INPUT);           // Transpose select potentiometer
+  pinMode(MODE_SWITCH, INPUT_PULLUP);  // Mode Select
 
-  // Speaker control pin
-  pinMode(MUTE_INPUT, OUTPUT);    // Speaker mute pin
-  digitalWrite(MUTE_INPUT, LOW);  // Unmute speaker
-
-  // VS1053 control pins
-  pinMode(VS_DREQ, INPUT);      // Data Request
-  pinMode(VS_XCS, OUTPUT);      // Chip Select
-  pinMode(VS_XDCS, OUTPUT);     // Data Chip Select
+  pinMode(VS_DREQ, INPUT);
+  pinMode(VS_XCS, OUTPUT);
+  pinMode(VS_XDCS, OUTPUT);
   digitalWrite(VS_XCS, HIGH);   // Deselect Control
   digitalWrite(VS_XDCS, HIGH);  // Deselect Data
-  pinMode(VS_RESET, OUTPUT);    // Reset
-
-  // Use serial for reading switches from another board
-  Serial.begin(115200);  // Start serial communication
+  pinMode(VS_RESET, OUTPUT);
+  Serial.begin(115200);  // Use serial for debugging
 
   // Initialize VS1053 chip
   digitalWrite(VS_RESET, LOW);  // Put VS1053 into hardware reset
@@ -34,10 +28,11 @@ void setup() {
   SPI.setDataMode(SPI_MODE0);
   SPI.setClockDivider(SPI_CLOCK_DIV16);  // Set SPI bus speed to 1MHz (16MHz / 16 = 1MHz)
   SPI.transfer(0xFF);                    // Throw a dummy byte at the bus
+
   delayMicroseconds(1);
   digitalWrite(VS_RESET, HIGH);  // Bring up VS1053
 
-  VSLoadUserCode();  // Use to put VS1053 into realtime MIDI mode (only first time)
+  //VSLoadUserCode(); // Use to put VS1053 into realtime MIDI mode (only first time)
 
   airPress.initialize(HX_CLK, HX_DOUT);  // Initialize HX710B chip
 
@@ -45,29 +40,13 @@ void setup() {
   lastBreath = 0;
   lastPitch = 0;
   tuning = 0;
-  resistLevel = 0;
   mode = PLAY_MODE;
-  selectedMenu = PLAY_MODE;
-  displayChanged = true;
-  lastBleConnected = false;
-  isBleOn = false;
+  screen = 0;
 
-  // Set correct values for the previous and next menus
-  previousMenu = selectedMenu - 1;
-  if (previousMenu < 0) {
-    previousMenu = NUM_MENU - 1;
-  }
-  nextMenu = selectedMenu + 1;
-  if (nextMenu > NUM_MENU - 1) {
-    nextMenu = 0;
-  }
-
-  // Initialize display and play startup sound
-  display.begin();
-  display.setBitmapMode(1);
-  startup1();
+  // Initialize display
+  display.begin(0x3C, true);
+  // startup1();
   startSound();
-  delay(1000);
-  startup2();
-  display.setColorIndex(1);  // set the color to white
+  // startup2();
+  
 }
