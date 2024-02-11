@@ -38,7 +38,6 @@ void setup() {
     pinMode(i, INPUT_PULLUP);
   }
   Serial.begin(115200);  // Start serial communication
-  delay(2000);
 }
 
 //****************************
@@ -52,7 +51,9 @@ void loop() {
     readSwitches();  // Read each switch value
 
     // Calculate midi note from all pressed switches
-    midiNote = START_NOTE + 5 * LHf - 2 * LH1 - (LHb && !(LH1 && LH2)) - LH2 - (LH2 && LH1) - 2 * LH3 + LHp1 - LHp2 - 2 * LHp3 - RH1 - (RH1 && LH3) - RH2 - 2 * RH3 + RHp1 - 2 * RHp2 + RHs + 12 * Oct;
+    midiNote = START_NOTE + 5 * LHf - 2 * LH1 - (LHb && !(LH1 && LH2)) 
+    - LH2 - (LH2 && LH1) - 2 * LH3 + LHs1 + LHs2 + LHs3 + LHp1 - LHp2 - (2 * LHp3) - RH1 - 
+    (RH1 && LH3) - RH2 - 2 * RH3 + RHp1 - 2 * RHp2 + RHs + 12 * Oct;
 
     if (Serial.availableForWrite())
       Serial.write(midiNote);  // Send MIDI note through Serial
@@ -80,6 +81,9 @@ int digitalReadDebounce(int pin) {
 }
 
 // Read switches and put inverted value in variables
+/* *** Only 17 pins can use as digital pin (pin 0, 1 for UART 
+   and pin 13 for board's LED) but program need to read 18 switches 
+   so 1 analog pin is use to read switch.*/
 void readSwitches() {
   LHf = !digitalReadDebounce(2);
   LH1 = !digitalReadDebounce(3);
@@ -92,20 +96,15 @@ void readSwitches() {
   Oct = !digitalReadDebounce(10);
   LHp1 = !digitalReadDebounce(11);
   LHp2 = !digitalReadDebounce(12);
-  LHp3 = !digitalReadDebounce(13);
+  if (analogRead(A6) == 0) {
+    LHp3 = 1;
+  }
+  else
+    LHp3 = 0;
   RH1 = !digitalReadDebounce(14);
   RH2 = !digitalReadDebounce(15);
   RH3 = !digitalReadDebounce(16);
   RHs = !digitalReadDebounce(17);
   RHp1 = !digitalReadDebounce(18);
   RHp2 = !digitalReadDebounce(19);
-}
-
-// Drop outdated data from serial buffer
-void dropOutdated() {
-  int bytesInBuffer = Serial.available();  // Get number of bytes in buffer
-  // Loop through buffer and drop outdated datas
-  for (int i = 0; i < bytesInBuffer; i++) {
-    uint8_t data = Serial.read();
-  }
 }
